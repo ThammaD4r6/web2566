@@ -21,7 +21,7 @@
         }
 
         #view2 .col img {
-            width: 35%;
+            width: 60%;
 
         }
     </style>
@@ -62,6 +62,36 @@
             <div class="col"><img src='Work1_Picture/0.png' id='img15'></div>
             <div class="col"><img src='Work1_Picture/0.png' id='img16'></div>
         </div>
+        <div class="row">
+            <div class="col"><img src='Work1_Picture/0.png' id='img17'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img18'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img19'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img20'></div>
+        </div>
+        <div class="row">
+            <div class="col"><img src='Work1_Picture/0.png' id='img21'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img22'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img23'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img24'></div>
+        </div>
+        <div class="row">
+            <div class="col"><img src='Work1_Picture/0.png' id='img25'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img26'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img27'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img28'></div>
+        </div>
+        <div class="row">
+            <div class="col"><img src='Work1_Picture/0.png' id='img29'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img30'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img31'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img32'></div>
+        </div>
+        <div class="row">
+            <div class="col"><img src='Work1_Picture/0.png' id='img33'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img34'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img35'></div>
+            <div class="col"><img src='Work1_Picture/0.png' id='img36'></div>
+        </div>
     </div>
 
     <script>
@@ -73,7 +103,7 @@
         function startGame() {
             shuffle();
             open_count = 0;
-            all_card = 16;
+            all_card = 36;
             $("#view2").show();
             $("#view1").hide();
         }
@@ -85,21 +115,21 @@
         function shuffle() {
             var list = [];
             list[0] = 0;
-            for (var i = 1; i <= 8; i++) {
+            for (var i = 1; i <= 36; i++) {
                 list.push(i);
                 list.push(i);
             }
             // console.log(list);
             for (var i = 1; i < 100; i++) {
-                var a = 1 + Math.round(Math.random() * 15);
-                var b = 1 + Math.round(Math.random() * 15);
+                var a = 1 + Math.round(Math.random() * 35);
+                var b = 1 + Math.round(Math.random() * 35);
                 var t = list[a];
                 list[a] = list[b];
                 list[b] = t;
             }
             $("#view2 img").attr("src", "Work1_Picture/0.png")
                 .attr("state", 0);
-            for (var i = 1; i <= 16; i++) {
+            for (var i = 1; i <= 36; i++) {
                 $("#img" + i).attr("srcx", "Work1_Picture/" + list[i] + ".png");
             }
         }
