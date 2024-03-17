@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Project</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-container>
+                <v-card>
+                    <v-card-title class="bg-blue-grey">{{ title }}</v-card-title>
+                    <v-card-text class="pa-6">
+                        <v-card-actions>
+                            <v-btn @click="google_login()" v-if="!user" class="mx-auto">Login</v-btn> <br>
+                            <v-btn @click="google_logout()" v-if="user" class="mx-auto">Logout</v-btn>
+                        </v-card-actions>
+                    </v-card-text>
+                </v-card>
+                <div class="pa-6 text-center">{{ footer }}</div>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHKEj3SV0SZafdp2gX3qcAMQce1GiB3ZQ",
+            authDomain: "web2566-183ac.firebaseapp.com",
+            projectId: "web2566-183ac",
+            storageBucket: "web2566-183ac.appspot.com",
+            messagingSenderId: "213603252836",
+            appId: "1:213603252836:web:dcdde87c3fd9bf3d8efd71",
+            measurementId: "G-HH09ZWJC9D"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const vuetify = Vuetify.createVuetify();
+        const app = Vue.createApp({
+            data() {
+                return {
+                    title: "วิชาอะไรสักอย่าง บางอย่างอาจจะไม่รู้ แต่ถ้ารู้ก็ดีไป",
+                    user: null
+                };
+            },
+            methods: {
+                google_login() {
+                    var provider = new firebase.auth.GoogleAuthProvider();
+                    provider.addScope("profile");
+                    provider.addScope("email");
+
+                    firebase.auth().signInWithPopup(provider)
+                        .then((result) => {
+                            const user = result.user;
+                            db.collection("student").where("email", "==", user.email).get()
+                                .then((querySnapshot) => {
+                                    if (!querySnapshot.empty) {
+                                        window.location.href = '/Student.html';
+                                    } else {
+                                        db.collection("teacher").where("email", "==", user.email).get()
+                                            .then((querySnapshot) => {
+                                                if (!querySnapshot.empty) {
+                                                    window.location.href = '/Teacher.html';
+                                                }
+                                            })
+                                    }
+                                })
+                        })
+                },
+                google_logout() {
+                    if (confirm("คุณแน่ใจหรือไม่?")) {
+                        firebase.auth().signOut();
+                    }
+                }
+            },
+            mounted() {
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        this.user = user.toJSON();
+                    } else {
+                        this.user = null;
+                    }
+                });
+            }
+        });
+
+        app.use(vuetify).mount("#app");
+
+    </script>
+</body>
+
+</html>

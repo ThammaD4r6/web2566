@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Student Page</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-container>
+                <v-card>
+                    <v-card-title class="bg-blue-grey">{{ title }}</v-card-title>
+                    <v-card-text class="pa-6">
+                        <template v-if="user">
+                            <div class="pa-2">
+                                <v-avatar><img :src="user.photoURL" /></v-avatar>
+                            </div>
+                            <div class="pa-2">
+                                {{ user.displayName }}<br />
+                                {{ user.email }}
+                                <v-btn @click="google_logout()">Logout</v-btn>
+                            </div>
+
+                            <v-form @submit.prevent="submitCheckinCode">
+                                <v-row>
+                                    <v-col cols="12" sm="6">
+                                        <v-text-field v-model="checkinCode" label="รหัสเช็คชื่อ"></v-text-field>
+                                        <!-- เพิ่มช่องกรอกรหัสเช็คชื่อ -->
+                                    </v-col>
+                                    <v-col cols="12" sm="6">
+                                        <v-btn type="submit" color="primary">เช็คชื่อ</v-btn>
+                                        <!-- เพิ่มปุ่มเช็คชื่อ -->
+                                    </v-col>
+                                </v-row>
+                            </v-form>
+
+                            <template v-if="question">
+                                <p>{{ question }}</p>
+                                <v-form @submit.prevent="submitAnswer">
+                                    <v-text-field v-model="answer" label="คำตอบ"></v-text-field>
+                                    <v-btn type="submit" color="primary">ส่งคำตอบ</v-btn>
+                                </v-form>
+                            </template>
+
+                        </template>
+                    </v-card-text>
+                </v-card>
+
+                <div class="pa-6 text-center">{{ footer }}</div>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBHKEj3SV0SZafdp2gX3qcAMQce1GiB3ZQ",
+            authDomain: "web2566-183ac.firebaseapp.com",
+            projectId: "web2566-183ac",
+            storageBucket: "web2566-183ac.appspot.com",
+            messagingSenderId: "213603252836",
+            appId: "1:213603252836:web:dcdde87c3fd9bf3d8efd71",
+            measurementId: "G-HH09ZWJC9D"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+        const vuetify = Vuetify.createVuetify();
+        const app = Vue.createApp({
+            data() {
+                return {
+                    title: "Student Page",
+                    user: null,
+                    checkinCode: "", // เพิ่มตัวแปรเก็บรหัสเช็คชื่อที่ผู้ใช้กรอก
+                    question: "", // เพิ่มตัวแปรเก็บคำถาม
+                    answer: "" // เพิ่มตัวแปรเก็บคำตอบ
+                };
+            },
+            methods: {
+                google_logout() {
+                    if (confirm("คุณแน่ใจหรือไม่?")) {
+                        firebase.auth().signOut().then(() => {
+                            window.location.href = '/ProjectFinal_vue.html';
+                        }).catch((error) => {
+                            console.log("เกิดข้อผิดพลาดในการออกจากระบบ:", error);
+                        });
+                    }
+                },
+                submitCheckinCode() {
+                    const checkinCode = this.checkinCode.trim();
+
+                    if (!checkinCode) {
+                        alert("กรุณากรอกรหัสเช็คชื่อ");
+                        return;
+                    }
+
+                    db.collection("checkin").doc(checkinCode).get()
+                        .then((doc) => {
+                            if (doc.exists) {
+                                const checkinData = doc.data();
+                                const checkinRecord = {
+                                    id: checkinData.id,
+                                    room: checkinData.room,
+                                    subject: checkinData.subject,
+                                    stdname: this.user.displayName,
+                                    stdemail: this.user.email,
+                                    status: "เช็คชื่อแล้ว"
+                                };
+
+                                db.collection("stdcheckin").add(checkinRecord)
+                                    .then(() => {
+                                        db.collection("question").where("checkid", "==", checkinCode).get()
+                                            .then((querySnapshot) => {
+                                                if (!querySnapshot.empty) {
+                                                    const questionDoc = querySnapshot.docs[0];
+                                                    this.question = questionDoc.data().q;
+                                                } else {
+                                                    this.question = null;
+                                                }
+                                            })
+                                            .catch((error) => {
+                                                console.error("เกิดข้อผิดพลาดในการดึงคำถาม:", error);
+                                            });
+                                        alert("บันทึกข้อมูลเช็คชื่อสำเร็จ");
+                                    })
+                                    .catch((error) => {
+                                        console.error("เกิดข้อผิดพลาดในการบันทึกข้อมูลเช็คชื่อ:", error);
+                                    });
+                            } else {
+                                alert("ไม่พบรหัสเช็คชื่อที่กรอก");
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("เกิดข้อผิดพลาดในการดึงข้อมูลเช็คชื่อ:", error);
+                        });
+                },
+                submitAnswer() {
+                    if (!this.answer.trim()) {
+                        alert("กรุณากรอกคำตอบ");
+                        return;
+                    }
+
+                    db.collection("answer").add({
+                        checkinCode: this.checkinCode,
+                        answer: this.answer,
+                        stdname: this.user.displayName, // เพิ่มชื่อของผู้ใช้งาน
+                        stdemail: this.user.email // เพิ่มอีเมลของผู้ใช้งาน
+                    })
+                        .then(() => {
+                            alert("บันทึกคำตอบสำเร็จ");
+                            this.answer = "";
+                            this.question = null; // กำหนดคำถามให้เป็นค่าว่างหลังจากส่งคำตอบ
+                        })
+                        .catch((error) => {
+                            console.error("เกิดข้อผิดพลาดในการบันทึกคำตอบ:", error);
+                        });
+                }
+            },
+
+            mounted() {
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        this.user = user.toJSON();
+                    } else {
+                        this.user = null;
+                    }
+                });
+            }
+        });
+
+        app.use(vuetify).mount("#app");
+    </script>
+</body>
+
+</html>
